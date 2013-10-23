@@ -59,6 +59,7 @@ foreach (<FH>) {
 			author => '',
 			roles => [],
 			props => [],
+			texxers => [],
 			instructors => []
 		);
 
@@ -83,6 +84,11 @@ foreach (<FH>) {
 				responsible => $2,
 				description => $3
 			} if (m/\\prop\{(.*?)}\[(.*?)\]\s*(.*?)\s*$/);
+
+			push @{$material{texxers}}, {
+			    name => $1,
+			    mail => $2
+			} if (m/\\texxer\{(.*?)}(?:\[(.*?)\])?\s*$/);
 
 			push @{$material{instructors}}, {
 				name => $1,

@@ -17,7 +17,7 @@ all:
 ifeq ($(strip $(pdfdeps)),)
 	@$(MAKE) -s --no-print-directory $(subst .tex,.pdf,$(wildcard $(songdir)/*.tex $(sketchdir)/*.tex $(videodir)/*.tex))
 else
-	@$(MAKE) -s --no-print-directory $(manus) $(songs) $(individualdir) $(props) $(signup)
+	@$(MAKE) -s --no-print-directory $(manus) $(songs) $(individualdir) $(props) $(signup) $(texxers)
 endif
 
 plan: $(plan)
@@ -26,7 +26,7 @@ manus: $(manus)
 %.pdf: name = $(subst .pdf,,$(@F))
 
 # Makes a complete manuscript
-$(manus): $(scriptdir)/manus.pl $(acts) $(roles) $(contacts) $(pdfdeps) .config.mk
+$(manus): $(scriptdir)/manus.pl $(acts) $(roles) $(texxers) $(contacts) $(pdfdeps) .config.mk
 ifeq ($(strip $(pdfdeps)),)
 	@$(MAKE) -s --no-print-directory $@
 else
@@ -109,6 +109,18 @@ $(contacts): $(scriptdir)/contacts.pl $(contactsdir)/*.vcf
 	@rm $(name).*
 	@echo ""
 
+$(texxers): $(json) $(scriptdir)/texxers.pl
+	@echo -n "$(name).tex: "
+	@$(scriptdir)/texxers.pl $< > $(name).tex
+	@echo "OK"
+	@echo -n "$(name).pdf: "
+	-@pdflatex -halt-on-error $(name).tex > /dev/null
+	@pdflatex -halt-on-error $(name).tex > /dev/null && echo "OK" || echo "ERROR"
+	@mv $(name).pdf $@
+	@chmod 664 $@
+	@rm $(name).*
+	@echo ""
+
 $(signup): $(json) $(scriptdir)/signup.pl
 	@echo -n "$(name).tex: "
 	@$(scriptdir)/signup.pl $< > $(name).tex
@@ -152,7 +164,7 @@ clean :
 	@cd $(sketchdir) && $(MAKE) -s clean
 	@cd $(videodir) && $(MAKE) -s clean
 	@rm -f $(json)
-	@rm -f $(acts) $(roles) $(props) $(signup) $(manus) $(contacts)
+	@rm -f $(acts) $(roles) $(props) $(signup) $(manus) $(contacts) $(texxers)
 	@rm -rf $(individualdir)
 	@echo "OK"
 	@echo ""
